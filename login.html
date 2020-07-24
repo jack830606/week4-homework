@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+    integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+  <style>
+    html,
+    body {
+      height: 100vh;
+      text-align: center;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="app">
+      <div class="container">
+        <form class="form-signin" @submit.prevent="signin">
+          <h1 class="h3 mb-3 font-weight-normal">
+            請先登入
+          </h1>
+          <div class="form-group">
+            <label for="inputEmail" class="sr-only">Email address</label>
+            <input id="inputEmail" v-model="user.email" type="email" class="form-control" placeholder="Email address"
+              required autofocus>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input id="inputPassword" v-model="user.password" type="password" class="form-control"
+              placeholder="Password" required>
+          </div>
+          <button class="btn btn-lg btn-primary btn-block" type="submit">
+            登入
+          </button>
+          <br>
+          <button class="btn btn-outline-primary btn-block" type="button" @click="signout">
+            登出
+          </button>
+          <br>
+          <button class="btn btn-outline-primary btn-block" type="button" @click="getData">
+            取得資料
+          </button>
+          <p class="mt-5 mb-3 text-muted">
+            © 2020~∞ - 六角學院
+          </p>
+        </form>
+      </div>
+    </div>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+  <script>
+    const uuid = '53e0672b-2090-45df-a2bf-db5af28f0fcb';
+    const apiPath = 'https://course-ec-api.hexschool.io/api/';
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          user: {
+            email: '',
+            password: '',
+          },
+          token: ''
+        };
+      },
+      methods: {
+        signin() {
+          const api = `${apiPath}auth/login`;
+          axios.post(api, this.user).then((response) => {
+            console.log(response);
+            const token = response.data.token;
+            const expired = response.data.expired;
+            document.cookie = `token=${token}; expires=${new Date(expired * 1000)}; path=/`;
+            window.location = '/week4-homework/products.html';
+          }).catch((error) => {
+            console.log(error);
+          });
+        },
+        signout() {
+          document.cookie = `token=; expires=; path=/`;
+        },
+        getData() {
+          // 取得 token 的 cookies（注意取得的時間點）
+          // 詳情請見：https://developer.mozilla.org/zh-CN/docs/Web/API/Document/cookie
+          this.token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+          console.log(this.token);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+          // API
+          axios.get(`${apiPath}${uuid}/admin/ec/products`)
+            .then(res => {
+              console.log(res);
+            })
+            .catch(err => {
+              console.log(err);
+            })
+          // const api = `${apiPath}${uuid}/admin/ec/products`
+          // 將 Token 加入到 Headers
+          // 請自行完成 Ajax
+        }
+      },
+    })
+  </script>
+</body>
+</html>
